@@ -2,6 +2,12 @@
 
 
 
+\## Screenshot
+
+!\[Game Screenshot](screenshot.png)
+
+
+
 This is my Unity 2D puzzle game project created for my assignment.
 
 
