@@ -125,6 +125,11 @@ public class GridManager : MonoBehaviour
 
     private void Update()
     {
+        if (Keyboard.current != null && Keyboard.current.escapeKey.wasPressedThisFrame)
+        {
+            Application.Quit();
+        }
+
         try
         {
             if (Mouse.current.leftButton.wasPressedThisFrame)
