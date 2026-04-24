@@ -1,7 +1,7 @@
 # Unity 2D Grid Game
 
 ## Screenshot
-![Game Screenshot](./PlayGame.png.png)
+![Game Screenshot](./PlayGame.png)
 
 This is my Unity 2D puzzle game project created for my assignment.
 
