@@ -22,34 +22,43 @@ public class UIManager : MonoBehaviour
         CreateButtons();
     }
 
-
+    // This method creates buttons for each game level, sets their initial state, and assigns click listeners.
     private void CreateButtons()
     {
-        for (int i = 0; i < 10; i++)
+        try
         {
-            GameObject btnObj = Instantiate(buttonPrefab, buttonContainer);
-            Image img = btnObj.GetComponent<Image>();
-            Button btn = btnObj.GetComponent<Button>();
-            img.color = lockedColor;
-            TMP_Text txt = btnObj.GetComponentInChildren<TMP_Text>();
-            if (txt != null)
-                txt.text = "Game Level " + (i + 1);
-            
-            if (btn == null) {
-                Debug.LogError("Button component missing on prefab: " + btnObj.name);
-                continue;
+            for (int i = 0; i < 10; i++)
+            {
+                GameObject btnObj = Instantiate(buttonPrefab, buttonContainer);
+                Image img = btnObj.GetComponent<Image>();
+                Button btn = btnObj.GetComponent<Button>();
+                img.color = lockedColor;
+                TMP_Text txt = btnObj.GetComponentInChildren<TMP_Text>();
+                if (txt != null)
+                    txt.text = "Game Level " + (i + 1);
+
+                if (btn == null)
+                {
+                    Debug.LogError("Button component missing on prefab: " + btnObj.name);
+                    continue;
+                }
+
+                int index = i;
+                btn.onClick.RemoveAllListeners();
+                btn.onClick.AddListener(() => OnButtonClicked(index)); //??
+
+                buttons.Add(btnObj);
             }
-
-            int index = i;
-            btn.onClick.RemoveAllListeners();
-            btn.onClick.AddListener(() => OnButtonClicked(index)); //??
-
-            buttons.Add(btnObj);
+            SetPlayLevel(0); // indicate first level of the game
         }
-        SetPlayLevel(0); // indicate first level of the game
+        catch (System.Exception ex)
+        {
+            Debug.LogError("Error creating buttons: " + ex);
+
+        }
     }
 
-    // for leaning porposes for colors
+    // This method is called when a button is clicked. It updates the play level and informs the GridManager.
     public void OnButtonClicked(int levelIndex)
     {
 
@@ -60,73 +69,32 @@ public class UIManager : MonoBehaviour
             gridManager.gameLevel = levelIndex + 1;
             gridManager.NextGameLevel(levelIndex + 1);
         }
-        //for (int i = 0; i < buttons.Count; i++) {
-        //    Button btn = buttons[i].GetComponent<Button>();
-        //    Image img = buttons[i].GetComponent<Image>();
-        //    TextMeshProUGUI txtButton = buttons[i].GetComponentInChildren<TextMeshProUGUI>();
-
-        //    btn.interactable = true; // all buttons clickable
-
-        //    if (i < levelIndex)
-        //    {
-        //        img.color = doneColor;
-        //        txtButton.text = "Done Level " + (i + 1);
-        //    }
-        //    else if (i == levelIndex)
-        //    {
-        //        img.color = playingColor;
-        //        txtButton.text = "Playing!!";
-        //        gridManager.NextGameLevel(levelIndex + 1);
-        //    }
-        //    else
-        //    {
-        //        img.color = lockedColor;
-        //        txtButton.text = "Game Level " + (i + 1);
-        //    }
-        //}
     }
-   
+
+    // This method updates the button states based on the current level index.
     public void SetPlayLevel(int levelIndex)
     {
-        //Image imgPlaying = buttons[levelIndex].GetComponent<Image>();
-        //TextMeshProUGUI txtButtonPlaying = buttons[levelIndex].GetComponentInChildren<TextMeshProUGUI>();
-        //imgPlaying.color = playingColor;
-        //txtButtonPlaying.text = "Playing!!";
+        for (int i = 0 ; i < 10; i++)
+        {
+            Button btn = buttons[i].GetComponent<Button>();
+            Image img = buttons[i].GetComponent<Image>();
+            TextMeshProUGUI txtButton = buttons[i].GetComponentInChildren<TextMeshProUGUI>();
 
-        //if (levelIndex >= 1)
-        //{
-        //    Image imgDone = buttons[levelIndex - 1].GetComponent<Image>();
-        //    TextMeshProUGUI txtButton = buttons[levelIndex - 1].GetComponentInChildren<TextMeshProUGUI>();
-        //    imgDone.color = doneColor;
-        //    txtButton.text = "Done Level " + (levelIndex);
-        //}
-            //levelIndex--;
+            btn.interactable = true; // all buttons clickable
 
-            for (int i = 0 ; i < 10; i++)
-            {
-                Button btn = buttons[i].GetComponent<Button>();
-                Image img = buttons[i].GetComponent<Image>();
-                TextMeshProUGUI txtButton = buttons[i].GetComponentInChildren<TextMeshProUGUI>();
-
-                btn.interactable = true; // all buttons clickable
-                if (levelIndex == i)
-                    {
-                        img.color = playingColor;
-                        txtButton.text = "Playing!!";
-                    }
-                    if (levelIndex > i)
-                    {
-                        img.color = doneColor;
-                        txtButton.text = "Done Level " + (i + 1);
-                    }
-                    if (levelIndex < i)
-                    {
-                        img.color = lockedColor;
-                        txtButton.text = "Game Level " + (i + 1);
-                    }
+            if (levelIndex == i) {
+                img.color = playingColor;
+                txtButton.text = " Play!! ";
             }
-        
-
+            if (levelIndex > i) {
+                img.color = doneColor;
+                txtButton.text = "Done Level " + (i + 1) + " ";
+            }
+            if (levelIndex < i){
+                img.color = lockedColor;
+                txtButton.text = "Game Level " + (i + 1) + " ";
+            }
+        }
     }
 
 

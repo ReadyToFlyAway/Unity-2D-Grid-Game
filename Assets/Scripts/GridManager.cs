@@ -23,6 +23,7 @@ public class GridManager : MonoBehaviour
     [Header("Block Prefab")]
     public GameObject blockPrefab;
     public TMPro.TMP_Text infoText;
+    public TMPro.TMP_Text moneyText;
     public UIManager uiManager;
 
     private Block firstSelectedBlock;
@@ -37,6 +38,9 @@ public class GridManager : MonoBehaviour
     public int gameLevel = 1;
     private int gameLevelRow = 2;
     private int gameLevelCol = 4;
+    private int earnedMoney = 200;
+    private int totalEarnedMoney = 0;
+
     private GameObject[] playObjects = null;
     private GameObject newGame = null;
     private GameObject replayGame = null;
@@ -58,6 +62,9 @@ public class GridManager : MonoBehaviour
     private void Start()
     {
         GenerateGrid();
+        infoText.enabled = false;
+        moneyText.text = "Money: $0";
+        totalEarnedMoney=0;
     }
 
     private void PositionInfoText()
@@ -70,7 +77,7 @@ public class GridManager : MonoBehaviour
                 Vector3 worldPos = grid[0, 0].transform.position;
 
                 // move above grid
-                worldPos.y += 1f;
+                worldPos.y += -2f;
                 //worldPos.x += 2f; // move to the right to be above the control buttons
 
                 // convert to screen position because UI elements are positioned in screen space, while the blocks are positioned in world space.
@@ -148,6 +155,7 @@ public class GridManager : MonoBehaviour
 
         yield return null; // wait for the next frame to ensure all blocks are cleared before generating a new grid
         GenerateGrid();
+        infoText.enabled = false;
     }
 
     private List<Sprite> CreateListOfSprites()
@@ -302,14 +310,15 @@ public class GridManager : MonoBehaviour
                             // Handle game over logic here
                             string msg = $"Congratulations! You've matched all the blocks! Level {gameLevel} completed.";
                             infoText.text = msg;
+                            infoText.enabled = true;
                             AnimateText();
-
+                            totalEarnedMoney += earnedMoney;
+                            moneyText.text = $"Money: ${totalEarnedMoney}";
                             //Move to the next level, if current level is less than 10, otherwise reset to level 1
                             if (gameLevel >= 10) gameLevel = 0;
 
                             uiManager.SetPlayLevel(gameLevel);
                             gameLevel++;
-                            NextGameLevel(gameLevel);
                         }
                     }
                 }
@@ -349,13 +358,11 @@ public class GridManager : MonoBehaviour
     {
         try
         {
-            foreach (Block block in grid)
-            {
-
+            foreach (Block block in grid) {
                 if (block != null && !block.isRemoved && block.rowNumber > 0)
                     return false;
             }
-            
+
             return true;
         }
         catch (Exception ex)
@@ -373,46 +380,57 @@ public class GridManager : MonoBehaviour
             case 1:
                 gameLevelRow = 2;
                 gameLevelCol = 4;
+                earnedMoney = 200;
                 break;
             case 2:
                 gameLevelRow = 3;
                 gameLevelCol = 4;
+                earnedMoney = 400;
                 break;
             case 3:
                 gameLevelRow = 4;
                 gameLevelCol = 4;
+                earnedMoney = 600;
                 break;
             case 4:
                 gameLevelRow = 4;
                 gameLevelCol = 5;
+                earnedMoney = 800;
                 break;
             case 5:
                 gameLevelRow = 6;
                 gameLevelCol = 4;
+                earnedMoney = 1000;
                 break;
             case 6:
                 gameLevelRow = 5;
                 gameLevelCol = 6;
+                earnedMoney = 2000;
                 break;
             case 7:
                 gameLevelRow = 8;
                 gameLevelCol = 5;
+                earnedMoney = 4000;
                 break;
             case 8:
                 gameLevelRow = 6;
                 gameLevelCol = 8;
+                earnedMoney = 6000;
                 break;
             case 9:
                 gameLevelRow = 7;
                 gameLevelCol = 6;
+                earnedMoney = 8000;
                 break;
             case 10:
                 gameLevelRow = 8;
                 gameLevelCol = 8;
+                earnedMoney = 20000;
                 break;
-            default:
+            default: // reset to level 1 if gameLevel is out of range
                 gameLevelRow = 2;
                 gameLevelCol = 4;
+                earnedMoney = 0;
                 break;
         }
         StartCoroutine(RestartGameRoutine());
@@ -503,9 +521,6 @@ public class GridManager : MonoBehaviour
                      =====================================================================================*/
                     GameObject newPrefebBlock = Instantiate(blockPrefab, position, Quaternion.identity, transform);
                     
-                    //if (row == 0 && col > 3)
-                    //    continue;
-                   
                     if (row == 0)
                     {
                         // first row to put reset buttons
@@ -552,6 +567,7 @@ public class GridManager : MonoBehaviour
                 }
             }
             PositionInfoText();
+            //infoText.enabled = false; 
         }
         catch (Exception ex)
         {
@@ -561,30 +577,44 @@ public class GridManager : MonoBehaviour
 
     private void ShufflePairSpriteList(List<Sprite> lsitSprites)
     {
-        for (int i = 0; i < lsitSprites.Count; i++)
+        try
         {
-            int randomIndex = UnityEngine.Random.Range(i, lsitSprites.Count);
+            for (int i = 0; i < lsitSprites.Count; i++)
+            {
+                int randomIndex = UnityEngine.Random.Range(i, lsitSprites.Count);
 
-            Sprite temp = lsitSprites[i];
+                Sprite temp = lsitSprites[i];
 
-            lsitSprites[i] = lsitSprites[randomIndex];
-            lsitSprites[randomIndex] = temp;
+                lsitSprites[i] = lsitSprites[randomIndex];
+                lsitSprites[randomIndex] = temp;
+            }
+        }
+        catch (Exception ex)
+        {
+            Debug.Log($"ShufflePairSpriteList has detected an error! {ex}");
         }
     }
 
     private Sprite RandomSpriteToAssign()
     {
-        if (spritePoolIndex >= listOfPairSprites.Count)
+        try
         {
-            Debug.LogError("No more sprites left.");
+            if (spritePoolIndex >= listOfPairSprites.Count)
+            {
+                Debug.LogError("No more sprites left.");
+                return null;
+            }
+
+            Sprite spriteToAssign = listOfPairSprites[spritePoolIndex];
+            spritePoolIndex++;
+            return spriteToAssign;
+        }
+        catch (Exception ex)
+        {
+            Debug.Log($"RandomSpriteToAssign has detected an error! {ex}");
             return null;
         }
-
-        Sprite spriteToAssign = listOfPairSprites[spritePoolIndex];
-        spritePoolIndex++;
-        return spriteToAssign;
     }
- 
     private bool HasDirectPath(Block blockA, Block blockB)
     {
         try
@@ -636,19 +666,27 @@ public class GridManager : MonoBehaviour
     
     private bool HasHorizontalPath(Block a, Block b)
     {
-        if (a.rowNumber != b.rowNumber) return false;
-
-        int row = a.rowNumber;
-        int minCol = Mathf.Min(a.columnNumber, b.columnNumber);
-        int maxCol = Mathf.Max(a.columnNumber, b.columnNumber);
-
-        for (int col = minCol + 1; col < maxCol; col++)
+        try
         {
-            if (!IsCellPassable(row, col, a, b))
-                return false;
-        }
+            if (a.rowNumber != b.rowNumber) return false;
 
-        return true;
+            int row = a.rowNumber;
+            int minCol = Mathf.Min(a.columnNumber, b.columnNumber);
+            int maxCol = Mathf.Max(a.columnNumber, b.columnNumber);
+
+            for (int col = minCol + 1; col < maxCol; col++)
+            {
+                if (!IsBlockValid(row, col, a, b))
+                    return false;
+            }
+
+            return true;
+        }
+        catch (Exception ex)
+        {
+            Debug.Log($"HasHorizontalPath has detected an error! {ex}");
+            return false;
+        }
     }
 
     private void DestroyMatchBlocks(Block blockA, Block blockB)
@@ -695,14 +733,14 @@ public class GridManager : MonoBehaviour
             int corner2Col = blockA.columnNumber;
 
             bool pathUsingCorner1 =
-                IsCellPassable(corner1Row, corner1Col, blockA, blockB) &&
-                IsClearLine(blockA.rowNumber, blockA.columnNumber, corner1Row, corner1Col, blockA, blockB) &&
-                IsClearLine(corner1Row, corner1Col, blockB.rowNumber, blockB.columnNumber, blockA, blockB);
+                IsBlockValid(corner1Row, corner1Col, blockA, blockB) &&
+                IsClearPath(blockA.rowNumber, blockA.columnNumber, corner1Row, corner1Col, blockA, blockB) &&
+                IsClearPath(corner1Row, corner1Col, blockB.rowNumber, blockB.columnNumber, blockA, blockB);
 
             bool pathUsingCorner2 =
-                IsCellPassable(corner2Row, corner2Col, blockA, blockB) &&
-                IsClearLine(blockA.rowNumber, blockA.columnNumber, corner2Row, corner2Col, blockA, blockB) &&
-                IsClearLine(corner2Row, corner2Col, blockB.rowNumber, blockB.columnNumber, blockA, blockB);
+                IsBlockValid(corner2Row, corner2Col, blockA, blockB) &&
+                IsClearPath(blockA.rowNumber, blockA.columnNumber, corner2Row, corner2Col, blockA, blockB) &&
+                IsClearPath(corner2Row, corner2Col, blockB.rowNumber, blockB.columnNumber, blockA, blockB);
 
             return pathUsingCorner1 || pathUsingCorner2;
         }
@@ -715,7 +753,7 @@ public class GridManager : MonoBehaviour
 
     // This method checks if the path between two blocks is clear (i.e., no other blocks are in the way) for either a horizontal or vertical line.
     // It takes the starting and ending coordinates, as well as the start and end blocks to ensure they are not considered as obstacles.
-    private bool IsClearLine(int row1, int col1, int row2, int col2, Block start, Block end)
+    private bool IsClearPath(int row1, int col1, int row2, int col2, Block start, Block end)
     {
         // Horizontal
         if (row1 == row2)
@@ -725,7 +763,7 @@ public class GridManager : MonoBehaviour
 
             for (int col = minCol + 1; col < maxCol; col++)
             {
-                if (!IsCellPassable(row1, col, start, end))
+                if (!IsBlockValid(row1, col, start, end))
                     return false;
             }
 
@@ -740,7 +778,7 @@ public class GridManager : MonoBehaviour
 
             for (int row = minRow + 1; row < maxRow; row++)
             {
-                if (!IsCellPassable(row, col1, start, end))
+                if (!IsBlockValid(row, col1, start, end))
                     return false;
             }
 
@@ -750,8 +788,8 @@ public class GridManager : MonoBehaviour
         return false;
     }
 
-    // This method checks if a cell is passable, meaning it is either empty, the start block, or the end block.
-    private bool IsCellPassable(int row, int col, Block start, Block end)
+    // This method checks if a cell is valid, meaning it is either empty, the start block, or the end block.
+    private bool IsBlockValid(int row, int col, Block start, Block end)
     {
         try { 
             Block cell = grid[row, col];
@@ -763,10 +801,11 @@ public class GridManager : MonoBehaviour
         }
         catch (Exception ex)
         {
-            Debug.Log($"IsCellPassable has detected an error! {ex}");
+            Debug.Log($"IsBlockValid has detected an error! {ex}");
             return false;
         }
     }
+
     private bool HasTwoCorner(Block blockA, Block blockB)
     {
         try
@@ -777,16 +816,16 @@ public class GridManager : MonoBehaviour
             for (int row = 0; row < rows; row++)
             {
                 // Check both pivot points are passable
-                if (!IsCellPassable(row, blockA.columnNumber, blockA, blockB))
+                if (!IsBlockValid(row, blockA.columnNumber, blockA, blockB))
                     continue;
 
-                if (!IsCellPassable(row, blockB.columnNumber, blockA, blockB))
+                if (!IsBlockValid(row, blockB.columnNumber, blockA, blockB))
                     continue;
 
                 bool path =
-                    IsClearLine(blockA.rowNumber, blockA.columnNumber, row, blockA.columnNumber, blockA, blockB) &&
-                    IsClearLine(row, blockA.columnNumber, row, blockB.columnNumber, blockA, blockB) &&
-                    IsClearLine(row, blockB.columnNumber, blockB.rowNumber, blockB.columnNumber, blockA, blockB);
+                    IsClearPath(blockA.rowNumber, blockA.columnNumber, row, blockA.columnNumber, blockA, blockB) &&
+                    IsClearPath(row, blockA.columnNumber, row, blockB.columnNumber, blockA, blockB) &&
+                    IsClearPath(row, blockB.columnNumber, blockB.rowNumber, blockB.columnNumber, blockA, blockB);
 
                 if (path)
                     return true;
@@ -795,16 +834,16 @@ public class GridManager : MonoBehaviour
             // Try all columns
             for (int col = 0; col < columns; col++)
             {
-                if (!IsCellPassable(blockA.rowNumber, col, blockA, blockB))
+                if (!IsBlockValid(blockA.rowNumber, col, blockA, blockB))
                     continue;
 
-                if (!IsCellPassable(blockB.rowNumber, col, blockA, blockB))
+                if (!IsBlockValid(blockB.rowNumber, col, blockA, blockB))
                     continue;
 
                 bool path =
-                    IsClearLine(blockA.rowNumber, blockA.columnNumber, blockA.rowNumber, col, blockA, blockB) &&
-                    IsClearLine(blockA.rowNumber, col, blockB.rowNumber, col, blockA, blockB) &&
-                    IsClearLine(blockB.rowNumber, col, blockB.rowNumber, blockB.columnNumber, blockA, blockB);
+                    IsClearPath(blockA.rowNumber, blockA.columnNumber, blockA.rowNumber, col, blockA, blockB) &&
+                    IsClearPath(blockA.rowNumber, col, blockB.rowNumber, col, blockA, blockB) &&
+                    IsClearPath(blockB.rowNumber, col, blockB.rowNumber, blockB.columnNumber, blockA, blockB);
 
                 if (path)
                     return true;

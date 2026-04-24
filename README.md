@@ -1,7 +1,7 @@
 # Unity 2D Grid Game
 
 ## Screenshot
-![Game Screenshot](./screenshot.png)
+![Game Screenshot](./PlayGame.png.png)
 
 This is my Unity 2D puzzle game project created for my assignment.
 
@@ -11,7 +11,12 @@ This is my Unity 2D puzzle game project created for my assignment.
 - Puzzle mechanics
 
 ## Controls
-- Add your controls here (e.g. mouse click, keyboard arrows)
+- Play a new game
+- Replay the same game
+- De-select selected blocks
+- Delete maching blocks
+- Game lelevs
+- Earned money based on completing game levels
 
 ## How to run
 1. Open the project in Unity Hub
@@ -19,4 +24,4 @@ This is my Unity 2D puzzle game project created for my assignment.
 3. Click Play
 
 ## Author
-Your Name
+Runaky
